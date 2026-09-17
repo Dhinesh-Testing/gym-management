@@ -4,7 +4,7 @@ import app from './src/app.js';
 import db from './src/models/index.js';
 const { sequelize } = db;
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.MYSQLPORT || 5000;
 
 const startServer = async () => {
   try {

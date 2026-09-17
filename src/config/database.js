@@ -1,16 +1,17 @@
-import { Sequelize } from 'sequelize';
-import dotenv from 'dotenv';
+import { Sequelize } from "sequelize";
+import dotenv from "dotenv";
 dotenv.config();
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME || 'gym_management',
-  process.env.DB_USER || 'root',
-  process.env.DB_PASS || '',
+  process.env.MYSQL_DATABASE,
+  process.env.MYSQLUSER,
+  process.env.MYSQL_ROOT_PASSWORD,
   {
-    host: process.env.DB_HOST || 'localhost',
-    dialect: 'mysql',
-    logging: false, // Set to console.log to see SQL queries
-  }
+    host: process.env.MYSQLHOST,
+    port: process.env.MYSQLPORT,
+    dialect: "mysql",
+    logging: false,
+  },
 );
 
 export default sequelize;
