@@ -1,0 +1,153 @@
+{
+  "info": {
+    "name": "Gym Management - Diet Management",
+    "description": "APIs to manage individual diet/meal records",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get All Diets",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{token}}", "type": "string" }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"session\": \"lunch\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/diets/get",
+          "host": ["{{base_url}}"],
+          "path": ["diets", "get"]
+        }
+      }
+    },
+    {
+      "name": "Create Diet Record (Quantity Only)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{token}}", "type": "string" }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"session\": \"breakfast\",\n    \"foodName\": \"Boiled Eggs\",\n    \"isQuantity\": true,\n    \"isGrams\": false,\n    \"quantity\": 3,\n    \"description\": \"Large eggs, hard boiled\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/diets/add",
+          "host": ["{{base_url}}"],
+          "path": ["diets", "add"]
+        }
+      }
+    },
+    {
+      "name": "Create Diet Record (Grams Only)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{token}}", "type": "string" }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"session\": \"lunch\",\n    \"foodName\": \"Chicken Breast\",\n    \"isQuantity\": false,\n    \"isGrams\": true,\n    \"grams\": 250,\n    \"description\": \"Grilled breast without skin\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/diets/add",
+          "host": ["{{base_url}}"],
+          "path": ["diets", "add"]
+        }
+      }
+    },
+    {
+      "name": "Create Diet Record (Both)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{token}}", "type": "string" }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"session\": \"eveningsnack\",\n    \"foodName\": \"Almonds\",\n    \"isQuantity\": true,\n    \"isGrams\": true,\n    \"quantity\": 15,\n    \"grams\": 30,\n    \"description\": \"Raw unsalted almonds\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/diets/add",
+          "host": ["{{base_url}}"],
+          "path": ["diets", "add"]
+        }
+      }
+    },
+    {
+      "name": "Update Diet Record",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{token}}", "type": "string" }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"session\": \"dinner\",\n    \"foodName\": \"Grilled Salmon\",\n    \"isQuantity\": false,\n    \"isGrams\": true,\n    \"grams\": 200,\n    \"description\": \"Served with steamed veggies\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/diets/edit/1",
+          "host": ["{{base_url}}"],
+          "path": ["diets", "edit", "1"]
+        }
+      }
+    },
+    {
+      "name": "Delete Diet Record",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{token}}", "type": "string" }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/diets/delete/1",
+          "host": ["{{base_url}}"],
+          "path": ["diets", "delete", "1"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000", "type": "string" },
+    { "key": "token", "value": "your_jwt_token_here", "type": "string" }
+  ]
+}

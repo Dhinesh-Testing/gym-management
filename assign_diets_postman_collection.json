@@ -1,0 +1,177 @@
+{
+  "info": {
+    "name": "Gym Management - Diet Assignments",
+    "description": "APIs to assign and manage diets perfectly mirrored to workouts",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Assign Multiple Diets",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{token}}", "type": "string" }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"memberid\": 10,\n    \"trainerId\": 1,\n    \"diets\": [\n        {\n            \"dietId\": 1,\n            \"scheduledDate\": \"2026-09-15\",\n            \"status\": \"pending\",\n            \"notes\": \"Follow strict portions\"\n        },\n        {\n            \"dietId\": 2,\n            \"scheduledDate\": \"2026-09-16\"\n        }\n    ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/diet-assignments/assign",
+          "host": ["{{base_url}}"],
+          "path": ["diet-assignments", "assign"]
+        }
+      }
+    },
+    {
+      "name": "Get Trainer Assigned Diets",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{token}}", "type": "string" }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"page\": 1,\n    \"limit\": 30,\n    \"month\": \"2026-09\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/diet-assignments/trainer/1",
+          "host": ["{{base_url}}"],
+          "path": ["diet-assignments", "trainer", "1"]
+        }
+      }
+    },
+    {
+      "name": "Get Member Assigned Diets",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{token}}", "type": "string" }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"page\": 1,\n    \"limit\": 30\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/diet-assignments/member/10",
+          "host": ["{{base_url}}"],
+          "path": ["diet-assignments", "member", "10"]
+        }
+      }
+    },
+    {
+      "name": "Reschedule Assigned Diet",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{token}}", "type": "string" }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"newDate\": \"2026-09-20\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/diet-assignments/reschedule/1",
+          "host": ["{{base_url}}"],
+          "path": ["diet-assignments", "reschedule", "1"]
+        }
+      }
+    },
+    {
+      "name": "Update Diet Status",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{token}}", "type": "string" }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"status\": \"completed\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/diet-assignments/status/1",
+          "host": ["{{base_url}}"],
+          "path": ["diet-assignments", "status", "1"]
+        }
+      }
+    },
+    {
+      "name": "Edit Diet Assignment",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{token}}", "type": "string" }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"scheduledDate\": \"2026-09-25\",\n    \"status\": \"pending\",\n    \"notes\": \"Updated to pending again with new date\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/diet-assignments/edit/1",
+          "host": ["{{base_url}}"],
+          "path": ["diet-assignments", "edit", "1"]
+        }
+      }
+    },
+    {
+      "name": "Remove Assigned Diet",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{token}}", "type": "string" }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/diet-assignments/delete/1",
+          "host": ["{{base_url}}"],
+          "path": ["diet-assignments", "delete", "1"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000", "type": "string" },
+    { "key": "token", "value": "your_jwt_token_here", "type": "string" }
+  ]
+}
