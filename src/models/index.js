@@ -75,6 +75,13 @@ DietAssignment.belongsTo(Trainer, { foreignKey: 'trainerId' });
 Diet.hasMany(DietAssignment, { foreignKey: 'dietId' });
 DietAssignment.belongsTo(Diet, { foreignKey: 'dietId' });
 
+// Force all table names to lowercase to prevent duplicates on case-sensitive databases (Linux/Railway)
+Object.values(sequelize.models).forEach((model) => {
+  if (model.tableName) {
+    model.tableName = model.tableName.toLowerCase();
+  }
+});
+
 export default {
   sequelize,
   User,
