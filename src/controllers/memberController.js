@@ -129,7 +129,7 @@ export const loginMember = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
     const payload = { id: member.id, role: 'member' };
-    const token = jwt.sign(payload, process.env.JWT_SECRET || 'super_secret_jwt_key_12345', { expiresIn: '1d' });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '90d' });
 
     res.json({ status: 200, data: { token, user: { id: member.id, role: 'member', message: "Logged in successfully" } } });
   } catch (error) {
@@ -157,20 +157,57 @@ export const updateMemberStatus = async (req, res) => {
 
 export const searchMember = async (req, res) => {
   try {
-    const { query } = req.body;
+    const { query, trainerId } = req.body;
     if (!query) {
       return res.status(400).json({ message: "Search query is required" });
     }
+    const whereClause = {
+      fullname: {
+        [Op.like]: `%${query}%`
+      }
+    };
+    if (trainerId) {
+      whereClause.assignedtrainer = trainerId;
+    }
     const members = await Member.findAll({
-      where: {
-        fullname: {
-          [Op.like]: `%${query}%`
-        }
-      },
+      where: whereClause,
       attributes: ['id', 'fullname', 'profilephoto', 'status']
     });
     res.json({ status: 200, data: members });
   } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const assignTrainerAndPlan = async (req, res) => {
+  try {
+    const { assignedtrainer, membershipplanid } = req.body;
+
+    if (assignedtrainer === undefined && membershipplanid === undefined) {
+      return res.status(400).json({ message: 'Please provide either assignedtrainer or membershipplanid' });
+    }
+
+    const member = await Member.findByPk(req.params.id);
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    let updateData = {};
+    if (assignedtrainer !== undefined) updateData.assignedtrainer = assignedtrainer;
+    if (membershipplanid !== undefined) updateData.membershipplanid = membershipplanid;
+
+    await member.update(updateData);
+
+    res.json({
+      status: 200,
+      data: {
+        message: 'Assigned successfully',
+        assignedtrainer: member.assignedtrainer,
+        membershipplanid: member.membershipplanid
+      }
+    });
+  } catch (error) {
+    if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({ message: 'Validation error', errors: error.errors.map(e => e.message) });
+    }
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

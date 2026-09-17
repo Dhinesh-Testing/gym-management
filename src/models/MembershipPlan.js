@@ -15,13 +15,31 @@ const MembershipPlan = sequelize.define('MembershipPlan', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
-  durationInMonths: {
+  duration: {
     type: DataTypes.INTEGER,
     allowNull: false,
+  },
+  durationtype: {
+    type: DataTypes.ENUM('Days', 'Months', 'Years'),
+    allowNull: false,
+    defaultValue: 'Months',
   },
   price: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
+  },
+  registrationfee: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  offerprice: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  status: {
+    type: DataTypes.ENUM('active', 'inactive'),
+    allowNull: false,
+    defaultValue: 'active',
   },
 }, {
   timestamps: true,

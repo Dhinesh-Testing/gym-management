@@ -35,6 +35,7 @@ router.post("/members/edit/:id", authMiddleware, uploadProfilePhoto, processProf
 router.post("/members/status/:id", authMiddleware, memberController.updateMemberStatus);
 router.post("/members/delete/:id", authMiddleware, memberController.deleteMember);
 router.post("/members/search", authMiddleware, memberController.searchMember);
+router.post("/members/assign/:id", authMiddleware, memberController.assignTrainerAndPlan);
 
 // Trainer routes
 router.post("/trainers/get", trainerController.getAllTrainers);
@@ -44,6 +45,7 @@ router.post("/trainers/edit/:id", authMiddleware, uploadProfilePhoto, processPro
 router.post("/trainers/status/:id", authMiddleware, trainerController.updateTrainerStatus);
 router.post("/trainers/delete/:id", authMiddleware, trainerController.deleteTrainer);
 router.post("/trainers/dashboard-stats/:id", authMiddleware, trainerController.getTrainerDashboardStats);
+router.post("/trainers/members/:id", authMiddleware, trainerController.getTrainerMembers);
 
 // Attendance routes
 router.post(
@@ -85,6 +87,7 @@ router.post("/payments/get/:id", authMiddleware, paymentController.getPaymentByI
 router.post("/payments/add", authMiddleware, uploadPaymentScreenshot, processPaymentScreenshot, paymentController.createPayment);
 router.post("/payments/edit/:id", authMiddleware, uploadPaymentScreenshot, processPaymentScreenshot, paymentController.updatePayment);
 router.post("/payments/delete/:id", authMiddleware, paymentController.deletePayment);
+router.post("/payments/member-yearly/:memberId", authMiddleware, paymentController.getMemberPaymentsByYear);
 
 // Workout routes
 router.post("/workouts/get", authMiddleware, workoutController.getAllWorkouts);
@@ -131,6 +134,11 @@ router.post(
     "/subscriptions/add",
     authMiddleware,
     membershipController.assignSubscription,
+);
+router.post(
+    "/subscriptions/member/:memberId",
+    authMiddleware,
+    membershipController.getMemberSubscriptionDetails,
 );
 
 // Dashboard routes

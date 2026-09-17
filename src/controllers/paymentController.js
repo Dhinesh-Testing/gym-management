@@ -1,6 +1,7 @@
 import db from '../models/index.js';
 import fs from 'fs';
 import path from 'path';
+import { Op } from 'sequelize';
 
 const { Payment, Member } = db;
 
@@ -86,6 +87,34 @@ export const deletePayment = async (req, res) => {
 
     await payment.destroy();
     res.json({ status: 200, data: { message: 'Payment deleted successfully' } });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const getMemberPaymentsByYear = async (req, res) => {
+  try {
+    const { memberId } = req.params;
+    const { year } = req.body;
+
+    if (!year) {
+      return res.status(400).json({ message: "Year is required in request body" });
+    }
+
+    const startDate = `${year}-01-01`;
+    const endDate = `${year}-12-31`;
+
+    const payments = await Payment.findAll({
+      where: {
+        memberId,
+        paymentDate: {
+          [Op.between]: [startDate, endDate]
+        }
+      },
+      order: [['paymentDate', 'DESC']]
+    });
+
+    res.json({ status: 200, data: payments });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

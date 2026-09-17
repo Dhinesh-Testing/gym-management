@@ -117,7 +117,7 @@ export const loginTrainer = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ message: 'Missing required fields' });
-    
+
     const trainer = await Trainer.findOne({ where: { email } });
     if (!trainer) return res.status(400).json({ message: 'Invalid credentials' });
 
@@ -125,7 +125,7 @@ export const loginTrainer = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
     const payload = { id: trainer.id, role: 'trainer' };
-    const token = jwt.sign(payload, process.env.JWT_SECRET || 'super_secret_jwt_key_12345', { expiresIn: '1d' });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '90d' });
 
     res.json({ status: 200, data: { token, user: { id: trainer.id, role: 'trainer', message: "Logged in successfully" } } });
   } catch (error) {
@@ -137,7 +137,7 @@ export const updateTrainerStatus = async (req, res) => {
   try {
     const { status } = req.body;
     if (!status) return res.status(400).json({ message: 'Status is required' });
-    
+
     const trainer = await Trainer.findByPk(req.params.id);
     if (!trainer) return res.status(404).json({ message: 'Trainer not found' });
 
@@ -157,17 +157,17 @@ export const getTrainerDashboardStats = async (req, res) => {
     const { WorkoutAssignment, Workout, Member } = db;
 
     const assignedMembersCount = await Member.count({ where: { assignedtrainer: trainerId } });
-    
+
     // Use local time for 'today' based on the server
     const today = new Date();
     // adjust for timezone offset if necessary, or just use YYYY-MM-DD
     const todayString = today.toLocaleDateString('en-CA'); // Outputs YYYY-MM-DD
 
-    const totalWorkoutsAssigned = await WorkoutAssignment.count({ 
-      where: { 
+    const totalWorkoutsAssigned = await WorkoutAssignment.count({
+      where: {
         trainerId: trainerId,
         scheduledDate: todayString
-      } 
+      }
     });
 
     const todayWorkoutsAssigned = await WorkoutAssignment.findAll({
@@ -189,6 +189,18 @@ export const getTrainerDashboardStats = async (req, res) => {
         todayWorkoutsAssigned
       }
     });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const getTrainerMembers = async (req, res) => {
+  try {
+    const members = await Member.findAll({
+      where: { assignedtrainer: req.params.id },
+      attributes: { exclude: ['password'] }
+    });
+    res.json({ status: 200, data: members });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
