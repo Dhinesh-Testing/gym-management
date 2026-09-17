@@ -42,6 +42,8 @@ export const getTrainerById = async (req, res) => {
 export const createTrainer = async (req, res) => {
   try {
     let trainerData = cleanData(req.body);
+    delete trainerData.id; // Prevent explicit null from interfering with AUTO_INCREMENT
+    
     if (trainerData.password) {
       const salt = await bcrypt.genSalt(10);
       trainerData.password = await bcrypt.hash(trainerData.password, salt);

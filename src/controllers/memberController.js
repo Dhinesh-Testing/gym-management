@@ -47,6 +47,8 @@ export const getMemberById = async (req, res) => {
 export const createMember = async (req, res) => {
   try {
     let memberData = cleanData(req.body);
+    delete memberData.id; // Prevent explicit null from interfering with AUTO_INCREMENT
+
     if (memberData.password) {
       const salt = await bcrypt.genSalt(10);
       memberData.password = await bcrypt.hash(memberData.password, salt);
