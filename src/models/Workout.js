@@ -26,7 +26,15 @@ const Workout = sequelize.define('Workout', {
   description: {
     type: DataTypes.TEXT,
     allowNull: true,
-  }
+  },
+  workoutimage: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  trainerId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
 }, {
   timestamps: true,
 });

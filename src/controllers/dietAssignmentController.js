@@ -61,36 +61,90 @@ export const assignDiets = async (req, res) => {
 export const getTrainerDiets = async (req, res) => {
   try {
     const { trainerId } = req.params;
-    const { page = 1, limit = 30, month } = req.body;
+    const { page = 1, limit = 30, month, date } = req.body;
     const offset = (page - 1) * limit;
 
-    const { startDate, endDate } = getMonthDateRange(month);
+    let whereClause = { trainerId };
+    
+    if (date) {
+      whereClause.scheduledDate = date;
+    } else {
+      const { startDate, endDate } = getMonthDateRange(month);
+      whereClause.scheduledDate = {
+        [Op.between]: [startDate, endDate]
+      };
+    }
 
-    const { count, rows } = await DietAssignment.findAndCountAll({
-      where: {
-        trainerId,
-        scheduledDate: {
-          [Op.between]: [startDate, endDate]
-        }
-      },
-      limit: parseInt(limit),
-      offset: parseInt(offset),
-      include: [
-        { model: Member, attributes: ['id', 'fullname', 'profilephoto'] },
-        { model: Diet, attributes: ['id', 'session', 'foodName', 'isQuantity', 'isGrams', 'quantity', 'grams', 'description'] }
-      ],
-      order: [['scheduledDate', 'ASC']]
+    const uniqueCombos = await DietAssignment.findAll({
+      attributes: ['memberId', 'scheduledDate'],
+      where: whereClause,
+      group: ['memberId', 'scheduledDate'],
+      order: [['scheduledDate', 'ASC']],
+      raw: true
     });
 
-    const totalPages = Math.ceil(count / limit);
+    const totalRecords = uniqueCombos.length;
+    const totalPages = Math.ceil(totalRecords / limit);
+    const paginatedCombos = uniqueCombos.slice(offset, offset + parseInt(limit));
+
+    let paginatedData = [];
+
+    if (paginatedCombos.length > 0) {
+      const comboWhere = paginatedCombos.map(combo => ({
+        memberId: combo.memberId,
+        scheduledDate: combo.scheduledDate
+      }));
+
+      const rows = await DietAssignment.findAll({
+        where: {
+          trainerId,
+          [Op.or]: comboWhere
+        },
+        include: [
+          { model: Member, attributes: ['id', 'fullname', 'profilephoto'] },
+          { model: Diet, attributes: ['id', 'session', 'foodName', 'isQuantity', 'isGrams', 'quantity', 'grams', 'description'] }
+        ],
+        order: [['scheduledDate', 'ASC']]
+      });
+
+      const groupedMap = new Map();
+      rows.forEach(row => {
+        const dateStr = row.scheduledDate instanceof Date 
+            ? row.scheduledDate.toISOString().split('T')[0] 
+            : row.scheduledDate;
+        const key = `${row.memberId}_${dateStr}`;
+        
+        if (!groupedMap.has(key)) {
+          groupedMap.set(key, {
+            memberId: row.memberId,
+            scheduledDate: dateStr,
+            status: row.status,
+            notes: row.notes,
+            Member: row.Member,
+            diets: []
+          });
+        }
+        
+        if (row.Diet) {
+          groupedMap.get(key).diets.push(row.Diet);
+        }
+      });
+
+      paginatedData = paginatedCombos.map(combo => {
+        const dateStr = combo.scheduledDate instanceof Date 
+            ? combo.scheduledDate.toISOString().split('T')[0] 
+            : combo.scheduledDate;
+        return groupedMap.get(`${combo.memberId}_${dateStr}`);
+      }).filter(Boolean);
+    }
 
     res.json({
       status: 200,
-      data: rows,
+      data: paginatedData,
       pagination: {
         currentPage: parseInt(page),
         perPage: parseInt(limit),
-        totalRecords: count,
+        totalRecords,
         totalPages,
         hasNextPage: page < totalPages,
         hasPreviousPage: page > 1,

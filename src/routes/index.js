@@ -1,7 +1,7 @@
 import express from "express";
 const router = express.Router();
 import authMiddleware from "../middlewares/auth.js";
-import { uploadProfilePhoto, processProfilePhoto, uploadPaymentScreenshot, processPaymentScreenshot } from "../middlewares/uploadMiddleware.js";
+import { uploadProfilePhoto, processProfilePhoto, uploadPaymentScreenshot, processPaymentScreenshot, uploadWorkoutImage, processWorkoutImage } from "../middlewares/uploadMiddleware.js";
 
 import * as authController from "../controllers/authController.js";
 import * as memberController from "../controllers/memberController.js";
@@ -91,8 +91,8 @@ router.post("/payments/member-yearly/:memberId", authMiddleware, paymentControll
 
 // Workout routes
 router.post("/workouts/get", authMiddleware, workoutController.getAllWorkouts);
-router.post("/workouts/add", authMiddleware, workoutController.createWorkout);
-router.post("/workouts/edit/:id", authMiddleware, workoutController.updateWorkout);
+router.post("/workouts/add", authMiddleware, uploadWorkoutImage, processWorkoutImage, workoutController.createWorkout);
+router.post("/workouts/edit/:id", authMiddleware, uploadWorkoutImage, processWorkoutImage, workoutController.updateWorkout);
 router.post("/workouts/delete/:id", authMiddleware, workoutController.deleteWorkout);
 router.post("/workouts/search", authMiddleware, workoutController.searchWorkout);
 

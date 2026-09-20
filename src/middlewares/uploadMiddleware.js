@@ -91,3 +91,33 @@ export const processPaymentScreenshot = async (req, res, next) => {
     res.status(500).json({ message: 'Error processing screenshot upload', error: error.message });
   }
 };
+
+export const uploadWorkoutImage = upload.single('workoutimage');
+
+export const processWorkoutImage = async (req, res, next) => {
+  if (!req.file) return next();
+
+  try {
+    const filename = `workout-${Date.now()}-${Math.round(Math.random() * 1e9)}.jpeg`;
+    const uploadPath = path.join(__dirname, '../../public/uploads', filename);
+
+    const dir = path.dirname(uploadPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    await sharp(req.file.buffer)
+      .resize(800, null, {
+        withoutEnlargement: true,
+      })
+      .jpeg({ quality: 80 })
+      .toFile(uploadPath);
+
+    req.body.workoutimage = `/uploads/${filename}`;
+
+    next();
+  } catch (error) {
+    console.error('Error processing workout image:', error);
+    res.status(500).json({ message: 'Error processing image upload', error: error.message });
+  }
+};
