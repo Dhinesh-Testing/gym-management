@@ -74,7 +74,7 @@ export const getTrainerAssignments = async (req, res) => {
       offset: parseInt(offset),
       include: [
         { model: Member, attributes: ['id', 'fullname', 'profilephoto'] },
-        { model: Workout, attributes: ['id', 'title', 'targetmuscle', 'difficultlevel', 'sets', 'reps', 'weight', 'resttime'] }
+        { model: Workout, }
       ],
       order: [['scheduledDate', 'ASC']]
     });
