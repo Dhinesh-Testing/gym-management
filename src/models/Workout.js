@@ -31,6 +31,22 @@ const Workout = sequelize.define('Workout', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  sets: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  reps: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  weight: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
+  },
+  resttime: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
   trainerId: {
     type: DataTypes.INTEGER,
     allowNull: true,

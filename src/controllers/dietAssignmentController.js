@@ -65,7 +65,7 @@ export const getTrainerDiets = async (req, res) => {
     const offset = (page - 1) * limit;
 
     let whereClause = { trainerId };
-    
+
     if (date) {
       whereClause.scheduledDate = date;
     } else {
@@ -109,11 +109,11 @@ export const getTrainerDiets = async (req, res) => {
 
       const groupedMap = new Map();
       rows.forEach(row => {
-        const dateStr = row.scheduledDate instanceof Date 
-            ? row.scheduledDate.toISOString().split('T')[0] 
-            : row.scheduledDate;
+        const dateStr = row.scheduledDate instanceof Date
+          ? row.scheduledDate.toISOString().split('T')[0]
+          : row.scheduledDate;
         const key = `${row.memberId}_${dateStr}`;
-        
+
         if (!groupedMap.has(key)) {
           groupedMap.set(key, {
             memberId: row.memberId,
@@ -124,16 +124,16 @@ export const getTrainerDiets = async (req, res) => {
             diets: []
           });
         }
-        
+
         if (row.Diet) {
           groupedMap.get(key).diets.push(row.Diet);
         }
       });
 
       paginatedData = paginatedCombos.map(combo => {
-        const dateStr = combo.scheduledDate instanceof Date 
-            ? combo.scheduledDate.toISOString().split('T')[0] 
-            : combo.scheduledDate;
+        const dateStr = combo.scheduledDate instanceof Date
+          ? combo.scheduledDate.toISOString().split('T')[0]
+          : combo.scheduledDate;
         return groupedMap.get(`${combo.memberId}_${dateStr}`);
       }).filter(Boolean);
     }
@@ -232,6 +232,36 @@ export const editAssignment = async (req, res) => {
     const assignment = await DietAssignment.findByPk(id);
     if (!assignment) {
       return res.status(404).json({ message: 'Assignment not found' });
+    }
+
+    const { memberId, memberid, trainerId, diets } = req.body;
+    const finalMemberId = memberId || memberid || assignment.memberId;
+    const finalTrainerId = trainerId || assignment.trainerId;
+
+    if (diets && Array.isArray(diets) && diets.length > 0) {
+      const first = diets[0];
+      await assignment.update({
+        memberId: finalMemberId,
+        trainerId: finalTrainerId,
+        dietId: first.dietId !== undefined ? first.dietId : assignment.dietId,
+        scheduledDate: first.scheduledDate !== undefined ? first.scheduledDate : assignment.scheduledDate,
+        status: first.status !== undefined ? first.status : assignment.status,
+        notes: first.notes !== undefined ? first.notes : assignment.notes
+      });
+
+      if (diets.length > 1) {
+        const newAssignments = diets.slice(1).map(d => ({
+          memberId: finalMemberId,
+          trainerId: finalTrainerId,
+          dietId: d.dietId,
+          scheduledDate: d.scheduledDate,
+          status: d.status || 'pending',
+          notes: d.notes || null,
+        }));
+        await DietAssignment.bulkCreate(newAssignments);
+      }
+
+      return res.json({ status: 200, data: { message: 'Assignments updated and added successfully', assignment } });
     }
 
     if (req.body.status && !['pending', 'completed'].includes(req.body.status)) {

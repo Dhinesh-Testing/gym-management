@@ -74,7 +74,7 @@ export const getTrainerAssignments = async (req, res) => {
       offset: parseInt(offset),
       include: [
         { model: Member, attributes: ['id', 'fullname', 'profilephoto'] },
-        { model: Workout, attributes: ['id', 'title', 'targetmuscle', 'difficultlevel'] }
+        { model: Workout, attributes: ['id', 'title', 'targetmuscle', 'difficultlevel', 'sets', 'reps', 'weight', 'resttime'] }
       ],
       order: [['scheduledDate', 'ASC']]
     });
@@ -112,7 +112,7 @@ export const getMemberAssignments = async (req, res) => {
       },
       include: [
         { model: Trainer, attributes: ['id', 'fullname'] },
-        { model: Workout, attributes: ['id', 'title', 'targetmuscle', 'difficultlevel', 'duration', 'description'] }
+        { model: Workout, attributes: ['id', 'title', 'targetmuscle', 'difficultlevel', 'duration', 'description', 'sets', 'reps', 'weight', 'resttime'] }
       ],
       order: [['scheduledDate', 'ASC']]
     });
@@ -193,6 +193,36 @@ export const editAssignment = async (req, res) => {
     const assignment = await WorkoutAssignment.findByPk(id);
     if (!assignment) {
       return res.status(404).json({ message: 'Assignment not found' });
+    }
+
+    const { memberId, memberid, trainerId, workouts } = req.body;
+    const finalMemberId = memberId || memberid || assignment.memberId;
+    const finalTrainerId = trainerId || assignment.trainerId;
+
+    if (workouts && Array.isArray(workouts) && workouts.length > 0) {
+      const first = workouts[0];
+      await assignment.update({
+        memberId: finalMemberId,
+        trainerId: finalTrainerId,
+        workoutId: first.workoutId !== undefined ? first.workoutId : assignment.workoutId,
+        scheduledDate: first.scheduledDate !== undefined ? first.scheduledDate : assignment.scheduledDate,
+        status: first.status !== undefined ? first.status : assignment.status,
+        notes: first.notes !== undefined ? first.notes : assignment.notes
+      });
+
+      if (workouts.length > 1) {
+        const newAssignments = workouts.slice(1).map(w => ({
+          memberId: finalMemberId,
+          trainerId: finalTrainerId,
+          workoutId: w.workoutId,
+          scheduledDate: w.scheduledDate,
+          status: w.status || 'pending',
+          notes: w.notes || null,
+        }));
+        await WorkoutAssignment.bulkCreate(newAssignments);
+      }
+
+      return res.json({ status: 200, data: { message: 'Assignments updated and added successfully', assignment } });
     }
 
     if (req.body.status && !['pending', 'completed'].includes(req.body.status)) {
