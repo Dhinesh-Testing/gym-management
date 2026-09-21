@@ -112,7 +112,7 @@ export const getMemberAssignments = async (req, res) => {
       },
       include: [
         { model: Trainer, attributes: ['id', 'fullname'] },
-        { model: Workout, attributes: ['id', 'title', 'targetmuscle', 'difficultlevel', 'duration', 'description', 'sets', 'reps', 'weight', 'resttime'] }
+        { model: Workout, }
       ],
       order: [['scheduledDate', 'ASC']]
     });
