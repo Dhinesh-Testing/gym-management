@@ -22,7 +22,7 @@ const getMonthDateRange = (monthStr) => {
 export const assignWorkouts = async (req, res) => {
   try {
     const { memberId, trainerId, workouts } = req.body;
-    
+
     if (!workouts || !Array.isArray(workouts)) {
       return res.status(400).json({ message: "Workouts array is required" });
     }
@@ -50,7 +50,18 @@ export const getTrainerAssignments = async (req, res) => {
     const { page = 1, limit = 30, month } = req.body;
     const offset = (page - 1) * limit;
 
-    const { startDate, endDate } = getMonthDateRange(month);
+    let startDate, endDate;
+    if (month) {
+      const range = getMonthDateRange(month);
+      startDate = range.startDate;
+      endDate = range.endDate;
+    } else {
+      endDate = new Date();
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 7);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+    }
 
     const { count, rows } = await WorkoutAssignment.findAndCountAll({
       where: {
@@ -114,10 +125,10 @@ export const getMemberAssignments = async (req, res) => {
       if (assignment.status === 'completed') completedCount++;
       if (assignment.status === 'pending') pendingCount++;
       if (assignment.Workout && assignment.Workout.duration) {
-         const dur = parseInt(assignment.Workout.duration);
-         if (!isNaN(dur)) {
-             totalDuration += dur;
-         }
+        const dur = parseInt(assignment.Workout.duration);
+        if (!isNaN(dur)) {
+          totalDuration += dur;
+        }
       }
     });
 
@@ -137,7 +148,7 @@ export const rescheduleAssignment = async (req, res) => {
   try {
     const { id } = req.params;
     const { newDate } = req.body;
-    
+
     if (!newDate) {
       return res.status(400).json({ message: "newDate is required" });
     }
@@ -178,23 +189,17 @@ export const updateStatus = async (req, res) => {
 export const editAssignment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { scheduledDate, status, notes } = req.body;
 
     const assignment = await WorkoutAssignment.findByPk(id);
     if (!assignment) {
       return res.status(404).json({ message: 'Assignment not found' });
     }
 
-    if (scheduledDate) assignment.scheduledDate = scheduledDate;
-    if (status) {
-      if (!['pending', 'completed'].includes(status)) {
-        return res.status(400).json({ message: "Invalid status. Allowed values: pending, completed" });
-      }
-      assignment.status = status;
+    if (req.body.status && !['pending', 'completed'].includes(req.body.status)) {
+      return res.status(400).json({ message: "Invalid status. Allowed values: pending, completed" });
     }
-    if (notes !== undefined) assignment.notes = notes;
 
-    await assignment.save();
+    await assignment.update(req.body);
     res.json({ status: 200, data: { message: 'Assignment updated successfully', assignment } });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

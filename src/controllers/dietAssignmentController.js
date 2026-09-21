@@ -228,23 +228,17 @@ export const updateStatus = async (req, res) => {
 export const editAssignment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { scheduledDate, status, notes } = req.body;
 
     const assignment = await DietAssignment.findByPk(id);
     if (!assignment) {
       return res.status(404).json({ message: 'Assignment not found' });
     }
 
-    if (scheduledDate) assignment.scheduledDate = scheduledDate;
-    if (status) {
-      if (!['pending', 'completed'].includes(status)) {
-        return res.status(400).json({ message: "Invalid status. Allowed values: pending, completed" });
-      }
-      assignment.status = status;
+    if (req.body.status && !['pending', 'completed'].includes(req.body.status)) {
+      return res.status(400).json({ message: "Invalid status. Allowed values: pending, completed" });
     }
-    if (notes !== undefined) assignment.notes = notes;
 
-    await assignment.save();
+    await assignment.update(req.body);
     res.json({ status: 200, data: { message: 'Assignment updated successfully', assignment } });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

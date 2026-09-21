@@ -4,7 +4,28 @@ import { Op } from 'sequelize';
 
 export const getAllTrainerAttendance = async (req, res) => {
   try {
+    const month = req.body.month;
+    const year = req.body.year;
+
+    let whereClause = {};
+
+    if (month && year) {
+      const targetMonth = parseInt(month, 10);
+      const targetYear = parseInt(year, 10);
+
+      if (!isNaN(targetMonth) && !isNaN(targetYear) && targetMonth >= 1 && targetMonth <= 12) {
+        const startDate = new Date(targetYear, targetMonth - 1, 1);
+        const endDate = new Date(targetYear, targetMonth, 0, 23, 59, 59);
+        whereClause.date = {
+          [Op.between]: [startDate, endDate]
+        };
+      } else {
+        return res.status(400).json({ message: 'Invalid month or year provided' });
+      }
+    }
+
     const records = await TrainerAttendance.findAll({
+      where: whereClause,
       include: {
         model: Trainer,
         attributes: ["id", "fullname"]
