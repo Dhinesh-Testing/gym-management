@@ -15,6 +15,10 @@ const Diet = sequelize.define('Diet', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  foodimageurl: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   isQuantity: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,

@@ -54,6 +54,11 @@ router.post(
     attendanceController.getAllAttendance,
 );
 router.post(
+    "/attendance/getAllAttendance",
+    authMiddleware,
+    attendanceController.getAllMembersAttendanceMonthWise,
+);
+router.post(
     "/attendance/check-in/add",
     authMiddleware,
     attendanceController.markAttendance,
@@ -69,6 +74,11 @@ router.post(
     "/trainer-attendance/get",
     authMiddleware,
     trainerAttendanceController.getAllTrainerAttendance,
+);
+router.post(
+    "/trainer-attendance/getAllAttendance",
+    authMiddleware,
+    trainerAttendanceController.getAllTrainersAttendanceMonthWise,
 );
 router.post(
     "/trainer-attendance/check-in/add",
