@@ -13,6 +13,8 @@ import ProgressLog from './ProgressLog.js';
 import WorkoutAssignment from './WorkoutAssignment.js';
 import DietAssignment from './DietAssignment.js';
 import TrainerAttendance from './TrainerAttendance.js';
+import FoodCategory from './FoodCategory.js';
+import FoodItem from './FoodItem.js';
 // Force all table names to lowercase to prevent duplicates on case-sensitive databases (Linux/Railway)
 Object.values(sequelize.models).forEach((model) => {
   if (model.tableName) {
@@ -81,6 +83,10 @@ DietAssignment.belongsTo(Trainer, { foreignKey: 'trainerId' });
 Diet.hasMany(DietAssignment, { foreignKey: 'dietId' });
 DietAssignment.belongsTo(Diet, { foreignKey: 'dietId' });
 
+// FoodCategory and FoodItem Associations
+FoodCategory.hasMany(FoodItem, { foreignKey: 'categoryid' });
+FoodItem.belongsTo(FoodCategory, { foreignKey: 'categoryid' });
+
 export default {
   sequelize,
   User,
@@ -96,4 +102,6 @@ export default {
   WorkoutAssignment,
   DietAssignment,
   TrainerAttendance,
+  FoodCategory,
+  FoodItem,
 };

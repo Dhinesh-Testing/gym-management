@@ -17,6 +17,8 @@ import * as progressController from "../controllers/progressController.js";
 import * as reportController from "../controllers/reportController.js";
 import * as workoutAssignmentController from "../controllers/workoutAssignmentController.js";
 import * as dietAssignmentController from "../controllers/dietAssignmentController.js";
+import * as foodCategoryController from "../controllers/foodCategoryController.js";
+import * as foodItemController from "../controllers/foodItemController.js";
 
 // Auth routes
 router.post("/auth/register", authController.register);
@@ -161,5 +163,17 @@ router.post("/reports/analytics", authMiddleware, reportController.getReports);
 router.post("/progress/add", authMiddleware, progressController.addProgressLog);
 router.post("/progress/overview/:memberId", authMiddleware, progressController.getProgressOverview);
 router.post("/progress/history/:memberId", authMiddleware, progressController.getProgressHistory);
+
+// Food Category routes
+router.post("/food-categories/get", authMiddleware, foodCategoryController.getAllFoodCategories);
+router.post("/food-categories/add", authMiddleware, foodCategoryController.createFoodCategory);
+router.post("/food-categories/edit/:id", authMiddleware, foodCategoryController.updateFoodCategory);
+router.post("/food-categories/delete/:id", authMiddleware, foodCategoryController.deleteFoodCategory);
+
+// Food Item routes
+router.post("/food-items/get", authMiddleware, foodItemController.getAllFoodItems);
+router.post("/food-items/add", authMiddleware, foodItemController.createFoodItem);
+router.post("/food-items/edit/:id", authMiddleware, foodItemController.updateFoodItem);
+router.post("/food-items/delete/:id", authMiddleware, foodItemController.deleteFoodItem);
 
 export default router;
