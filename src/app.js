@@ -23,7 +23,6 @@ app.get("/", (req, res) => {
   res.send("Gym Management API is running...");
 });
 
-
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);

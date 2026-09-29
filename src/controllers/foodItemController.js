@@ -29,12 +29,12 @@ export const getAllFoodItems = async (req, res) => {
 
 export const createFoodItem = async (req, res) => {
   try {
-    const { foodname, categoryid } = req.body;
-    if (!foodname || !categoryid) {
-      return res.status(400).json({ message: 'Food Name and Category ID are required' });
+    const { foodname, categoryid, foodimageurl } = req.body;
+    if (!foodname || !categoryid || !foodimageurl) {
+      return res.status(400).json({ message: 'Food Name, Category ID, and Food Image URL are required' });
     }
 
-    const item = await FoodItem.create({ foodname, categoryid });
+    const item = await FoodItem.create({ foodname, categoryid, foodimageurl });
     res.status(201).json({ status: 201, data: { message: 'Created successfully', item } });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -43,15 +43,15 @@ export const createFoodItem = async (req, res) => {
 
 export const updateFoodItem = async (req, res) => {
   try {
-    const { foodname, categoryid } = req.body;
-    if (!foodname || !categoryid) {
-      return res.status(400).json({ message: 'Food Name and Category ID are required' });
+    const { foodname, categoryid, foodimageurl } = req.body;
+    if (!foodname || !categoryid || !foodimageurl) {
+      return res.status(400).json({ message: 'Food Name, Category ID, and Food Image URL are required' });
     }
 
     const item = await FoodItem.findByPk(req.params.id);
     if (!item) return res.status(404).json({ message: 'Food Item not found' });
 
-    await item.update({ foodname, categoryid });
+    await item.update({ foodname, categoryid, foodimageurl });
     res.json({ status: 200, data: { message: 'Updated successfully', item } });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

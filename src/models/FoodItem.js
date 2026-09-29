@@ -14,6 +14,10 @@ const FoodItem = sequelize.define('FoodItem', {
   categoryid: {
     type: DataTypes.INTEGER,
     allowNull: false,
+  },
+  foodimageurl: {
+    type: DataTypes.STRING,
+    allowNull: false,
   }
 }, {
   timestamps: true,
