@@ -1,12 +1,12 @@
-import db from '../models/index.js';
-import { Op } from 'sequelize';
+import db from "../models/index.js";
+import { Op } from "sequelize";
 
 const { DietAssignment, Member, Trainer, Diet } = db;
 
 const getMonthDateRange = (monthStr) => {
   let targetYear, targetMonth;
   if (monthStr) {
-    const parts = monthStr.split('-');
+    const parts = monthStr.split("-");
     targetYear = parseInt(parts[0], 10);
     targetMonth = parseInt(parts[1], 10);
   } else {
@@ -28,33 +28,44 @@ export const assignDiets = async (req, res) => {
     }
 
     // Verify all provided diets exist
-    const requestedDietIds = diets.map(d => d.dietId);
+    const requestedDietIds = diets.map((d) => d.dietId);
     const existingDiets = await Diet.findAll({
       where: { id: requestedDietIds },
-      attributes: ['id']
+      attributes: ["id"],
     });
 
     if (existingDiets.length !== new Set(requestedDietIds).size) {
-      return res.status(400).json({ message: "One or more provided dietIds do not exist in the database." });
+      return res
+        .status(400)
+        .json({
+          message: "One or more provided dietIds do not exist in the database.",
+        });
     }
 
-    const assignments = diets.map(d => ({
+    const assignments = diets.map((d) => ({
       memberId: memberid,
       trainerId,
       dietId: d.dietId,
       scheduledDate: d.scheduledDate,
-      status: d.status || 'pending',
+      status: d.status || "pending",
       notes: d.notes || null,
     }));
 
     await DietAssignment.bulkCreate(assignments);
 
-    res.status(201).json({ status: 201, data: { message: 'Diets assigned successfully' } });
+    res
+      .status(201)
+      .json({ status: 201, data: { message: "Diets assigned successfully" } });
   } catch (error) {
-    if (error.name === 'SequelizeForeignKeyConstraintError') {
-      return res.status(400).json({ message: 'Invalid memberId or trainerId provided. The user does not exist.' });
+    if (error.name === "SequelizeForeignKeyConstraintError") {
+      return res
+        .status(400)
+        .json({
+          message:
+            "Invalid memberId or trainerId provided. The user does not exist.",
+        });
     }
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -71,47 +82,64 @@ export const getTrainerDiets = async (req, res) => {
     } else {
       const { startDate, endDate } = getMonthDateRange(month);
       whereClause.scheduledDate = {
-        [Op.between]: [startDate, endDate]
+        [Op.between]: [startDate, endDate],
       };
     }
 
     const uniqueCombos = await DietAssignment.findAll({
-      attributes: ['memberId', 'scheduledDate'],
+      attributes: ["memberId", "scheduledDate"],
       where: whereClause,
-      group: ['memberId', 'scheduledDate'],
-      order: [['scheduledDate', 'ASC']],
-      raw: true
+      group: ["memberId", "scheduledDate"],
+      order: [["scheduledDate", "ASC"]],
+      raw: true,
     });
 
     const totalRecords = uniqueCombos.length;
     const totalPages = Math.ceil(totalRecords / limit);
-    const paginatedCombos = uniqueCombos.slice(offset, offset + parseInt(limit));
+    const paginatedCombos = uniqueCombos.slice(
+      offset,
+      offset + parseInt(limit),
+    );
 
     let paginatedData = [];
 
     if (paginatedCombos.length > 0) {
-      const comboWhere = paginatedCombos.map(combo => ({
+      const comboWhere = paginatedCombos.map((combo) => ({
         memberId: combo.memberId,
-        scheduledDate: combo.scheduledDate
+        scheduledDate: combo.scheduledDate,
       }));
 
       const rows = await DietAssignment.findAll({
         where: {
           trainerId,
-          [Op.or]: comboWhere
+          [Op.or]: comboWhere,
         },
         include: [
-          { model: Member, attributes: ['id', 'fullname', 'profilephoto'] },
-          { model: Diet, attributes: ['id', 'session', 'foodName', 'isQuantity', 'isGrams', 'quantity', 'grams', 'description'] }
+          { model: Member, attributes: ["id", "fullname", "profilephoto"] },
+          {
+            model: Diet,
+            attributes: [
+              "id",
+              "session",
+              "foodName",
+              "isQuantity",
+              "isGrams",
+              "quantity",
+              "foodimageurl",
+              "grams",
+              "description",
+            ],
+          },
         ],
-        order: [['scheduledDate', 'ASC']]
+        order: [["scheduledDate", "ASC"]],
       });
 
       const groupedMap = new Map();
-      rows.forEach(row => {
-        const dateStr = row.scheduledDate instanceof Date
-          ? row.scheduledDate.toISOString().split('T')[0]
-          : row.scheduledDate;
+      rows.forEach((row) => {
+        const dateStr =
+          row.scheduledDate instanceof Date
+            ? row.scheduledDate.toISOString().split("T")[0]
+            : row.scheduledDate;
         const key = `${row.memberId}_${dateStr}`;
 
         if (!groupedMap.has(key)) {
@@ -121,7 +149,7 @@ export const getTrainerDiets = async (req, res) => {
             status: row.status,
             notes: row.notes,
             Member: row.Member,
-            diets: []
+            diets: [],
           });
         }
 
@@ -130,12 +158,15 @@ export const getTrainerDiets = async (req, res) => {
         }
       });
 
-      paginatedData = paginatedCombos.map(combo => {
-        const dateStr = combo.scheduledDate instanceof Date
-          ? combo.scheduledDate.toISOString().split('T')[0]
-          : combo.scheduledDate;
-        return groupedMap.get(`${combo.memberId}_${dateStr}`);
-      }).filter(Boolean);
+      paginatedData = paginatedCombos
+        .map((combo) => {
+          const dateStr =
+            combo.scheduledDate instanceof Date
+              ? combo.scheduledDate.toISOString().split("T")[0]
+              : combo.scheduledDate;
+          return groupedMap.get(`${combo.memberId}_${dateStr}`);
+        })
+        .filter(Boolean);
     }
 
     res.json({
@@ -148,10 +179,10 @@ export const getTrainerDiets = async (req, res) => {
         totalPages,
         hasNextPage: page < totalPages,
         hasPreviousPage: page > 1,
-      }
+      },
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -160,26 +191,39 @@ export const getMemberDiets = async (req, res) => {
     const { memberId } = req.params;
     const { date } = req.body;
 
-    const targetDate = date || new Date().toLocaleDateString('en-CA');
+    const targetDate = date || new Date().toLocaleDateString("en-CA");
 
     const rows = await DietAssignment.findAll({
       where: {
         memberId,
-        scheduledDate: targetDate
+        scheduledDate: targetDate,
       },
       include: [
-        { model: Trainer, attributes: ['id', 'fullname'] },
-        { model: Diet, attributes: ['id', 'session', 'foodName', 'isQuantity', 'isGrams', 'quantity', 'grams', 'description'] }
+        { model: Trainer, attributes: ["id", "fullname"] },
+        {
+          model: Diet,
+          attributes: [
+            "id",
+            "session",
+            "foodName",
+            "isQuantity",
+            "isGrams",
+            "foodimageurl",
+            "quantity",
+            "grams",
+            "description",
+          ],
+        },
       ],
-      order: [['scheduledDate', 'ASC']]
+      order: [["scheduledDate", "ASC"]],
     });
 
     res.json({
       status: 200,
-      data: rows
+      data: rows,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -193,14 +237,18 @@ export const rescheduleDiet = async (req, res) => {
     }
 
     const assignment = await DietAssignment.findByPk(id);
-    if (!assignment) return res.status(404).json({ message: 'Assignment not found' });
+    if (!assignment)
+      return res.status(404).json({ message: "Assignment not found" });
 
     assignment.scheduledDate = newDate;
     await assignment.save();
 
-    res.json({ status: 200, data: { message: 'Diet rescheduled successfully' } });
+    res.json({
+      status: 200,
+      data: { message: "Diet rescheduled successfully" },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -209,19 +257,27 @@ export const updateStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    if (!['pending', 'completed'].includes(status)) {
-      return res.status(400).json({ message: "Invalid status. Allowed values: pending, completed" });
+    if (!["pending", "completed"].includes(status)) {
+      return res
+        .status(400)
+        .json({
+          message: "Invalid status. Allowed values: pending, completed",
+        });
     }
 
     const assignment = await DietAssignment.findByPk(id);
-    if (!assignment) return res.status(404).json({ message: 'Assignment not found' });
+    if (!assignment)
+      return res.status(404).json({ message: "Assignment not found" });
 
     assignment.status = status;
     await assignment.save();
 
-    res.json({ status: 200, data: { message: 'Diet status updated successfully' } });
+    res.json({
+      status: 200,
+      data: { message: "Diet status updated successfully" },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -231,7 +287,7 @@ export const editAssignment = async (req, res) => {
 
     const assignment = await DietAssignment.findByPk(id);
     if (!assignment) {
-      return res.status(404).json({ message: 'Assignment not found' });
+      return res.status(404).json({ message: "Assignment not found" });
     }
 
     const { memberId, memberid, trainerId, diets } = req.body;
@@ -244,34 +300,53 @@ export const editAssignment = async (req, res) => {
         memberId: finalMemberId,
         trainerId: finalTrainerId,
         dietId: first.dietId !== undefined ? first.dietId : assignment.dietId,
-        scheduledDate: first.scheduledDate !== undefined ? first.scheduledDate : assignment.scheduledDate,
+        scheduledDate:
+          first.scheduledDate !== undefined
+            ? first.scheduledDate
+            : assignment.scheduledDate,
         status: first.status !== undefined ? first.status : assignment.status,
-        notes: first.notes !== undefined ? first.notes : assignment.notes
+        notes: first.notes !== undefined ? first.notes : assignment.notes,
       });
 
       if (diets.length > 1) {
-        const newAssignments = diets.slice(1).map(d => ({
+        const newAssignments = diets.slice(1).map((d) => ({
           memberId: finalMemberId,
           trainerId: finalTrainerId,
           dietId: d.dietId,
           scheduledDate: d.scheduledDate,
-          status: d.status || 'pending',
+          status: d.status || "pending",
           notes: d.notes || null,
         }));
         await DietAssignment.bulkCreate(newAssignments);
       }
 
-      return res.json({ status: 200, data: { message: 'Assignments updated and added successfully', assignment } });
+      return res.json({
+        status: 200,
+        data: {
+          message: "Assignments updated and added successfully",
+          assignment,
+        },
+      });
     }
 
-    if (req.body.status && !['pending', 'completed'].includes(req.body.status)) {
-      return res.status(400).json({ message: "Invalid status. Allowed values: pending, completed" });
+    if (
+      req.body.status &&
+      !["pending", "completed"].includes(req.body.status)
+    ) {
+      return res
+        .status(400)
+        .json({
+          message: "Invalid status. Allowed values: pending, completed",
+        });
     }
 
     await assignment.update(req.body);
-    res.json({ status: 200, data: { message: 'Assignment updated successfully', assignment } });
+    res.json({
+      status: 200,
+      data: { message: "Assignment updated successfully", assignment },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -281,12 +356,15 @@ export const removeAssignedDiet = async (req, res) => {
 
     const assignment = await DietAssignment.findByPk(id);
     if (!assignment) {
-      return res.status(404).json({ message: 'Assignment not found' });
+      return res.status(404).json({ message: "Assignment not found" });
     }
 
     await assignment.destroy();
-    res.json({ status: 200, data: { message: 'Assigned diet removed successfully' } });
+    res.json({
+      status: 200,
+      data: { message: "Assigned diet removed successfully" },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
